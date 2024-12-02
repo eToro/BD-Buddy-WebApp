@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<ChatService>(); // Register ChatService
-builder.Services.AddSingleton(new DatabaseRepository("server=stg-masterdb.trad.local;Persist Security Info=True;User ID=ETORO_ADMIN;Password=etoroadmin;database=etoro;Max Pool Size=1000;Connection Timeout=120"));
+builder.Services.AddSingleton(new DatabaseRepository("server=stg-masterdb.trad.local;Initial Catalog=etoro;User ID=ETORO_ADMIN;Password=etoroadmin; Max Pool Size=300;MultiSubnetFailover=True;encrypt=False;;Application Name=AutomationApplication;Application Name=AutomationApplication;"));
 
 
 var app = builder.Build();
