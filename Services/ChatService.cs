@@ -81,7 +81,7 @@ public class ChatService
                         var res = _databaseRepository.ExecuteCommand(sqlQuery);
                         res.ToString();
                         isSuccess = true;
-                        return res.ToString();
+                        return FormatDynamicObjects(res); ;
                     }
                     catch
                     {
@@ -121,5 +121,25 @@ public class ChatService
         {
             return $"An error occurred while processing the request: {ex.Message}";
         }
+    }
+    static string FormatDynamicObjects(List<dynamic> dynamicObjects)
+    {
+        if (dynamicObjects == null || dynamicObjects.Count == 0)
+        {
+            return "No results found.";
+        }
+
+        var result = new System.Text.StringBuilder();
+
+        foreach (var obj in dynamicObjects)
+        {
+            foreach (var property in (IDictionary<string, object>)obj)
+            {
+                result.AppendLine($"{property.Key}: {property.Value}");
+            }
+            result.AppendLine(new string('-', 20)); // Separator between objects  
+        }
+
+        return result.ToString();
     }
 }

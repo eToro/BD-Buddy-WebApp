@@ -13,7 +13,7 @@ namespace ChatGPTClone.Infrastructure
             _connectionString = connectionString;
         }
 
-        public List<dynamic> ExecuteCommand(string commandText/, Dictionary<string, object> parameters/)
+        public List<dynamic> ExecuteCommand(string commandText)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
