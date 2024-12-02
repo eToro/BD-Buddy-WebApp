@@ -1,6 +1,7 @@
 using Azure;
 using Azure.AI.OpenAI;
 using ChatGPTClone.Infrastructure;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json.Linq;
 using OpenAI.Assistants;
 
@@ -24,68 +25,64 @@ public class ChatService
 
     public async Task<object> GetAssistantResponseAsync(string userQuery)
     {
-        try
+
+        var threadResponse = await _assistantClient.CreateThreadAsync();
+        var userMessageContent = MessageContent.FromText(userQuery);
+
+        await _assistantClient.CreateMessageAsync(
+            threadResponse.Value.Id,
+            MessageRole.User,
+            new List<MessageContent> { userMessageContent });
+
+        var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
+
+        do
         {
-            var threadResponse = await _assistantClient.CreateThreadAsync();
-            var userMessageContent = MessageContent.FromText(userQuery);
+            await Task.Delay(500);
+            runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
+        } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
 
-            await _assistantClient.CreateMessageAsync(
+        if (runResponse.Value.Status == RunStatus.Completed)
+        {
+            var messageResponse = _assistantClient.GetMessagesAsync(
                 threadResponse.Value.Id,
-                MessageRole.User,
-                new List<MessageContent> { userMessageContent });
+                new MessageCollectionOptions { Order = MessageCollectionOrder.Descending });
 
-            var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
-
-            do
+            await foreach (var message in messageResponse)
             {
-                await Task.Delay(500);
-                runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
-            } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
-
-            if (runResponse.Value.Status == RunStatus.Completed)
-            {
-                var messageResponse = _assistantClient.GetMessagesAsync(
-                    threadResponse.Value.Id,
-                    new MessageCollectionOptions { Order = MessageCollectionOrder.Descending });
-
-                await foreach (var message in messageResponse)
+                if (message.Role == MessageRole.Assistant)
                 {
-                    if (message.Role == MessageRole.Assistant)
+                    var assistantMessage = message.Content.FirstOrDefault();
+                    if (assistantMessage != null)
                     {
-                        var assistantMessage = message.Content.FirstOrDefault();
-                        if (assistantMessage != null)
+                        if (!string.IsNullOrEmpty(assistantMessage.Text))
                         {
-                            if (!string.IsNullOrEmpty(assistantMessage.Text))
-                            {
-                                return assistantMessage.Text;
-                            }
+                            return assistantMessage.Text;
                         }
                     }
                 }
+            }
 
-                return "No assistant message found.";
-            }
-            else if (runResponse.Value.Status == RunStatus.RequiresAction)
-            {
-                var requiredActions = runResponse.Value.RequiredActions;
-                var arguments = requiredActions[0].FunctionArguments;
-                var jobj = JObject.Parse(arguments.ToString());
-
-                var sqlQuery = jobj["sqlQuery"].ToString();
-                var res = _databaseRepository.ExecuteCommand(sqlQuery);
-                res.ToString();
-                return FormatDynamicObjects(res); ;
-            }
-            else
-            {
-                return "The request did not complete successfully.";
-            }
+            return "No assistant message found.";
         }
-        catch (Exception ex)
+        else if (runResponse.Value.Status == RunStatus.RequiresAction)
         {
-            return $"An error occurred while processing the request: {ex.Message}";
+            var requiredActions = runResponse.Value.RequiredActions;
+            var arguments = requiredActions[0].FunctionArguments;
+            var jobj = JObject.Parse(arguments.ToString());
+
+            var sqlQuery = jobj["sqlQuery"].ToString();
+            var res = _databaseRepository.ExecuteCommand(sqlQuery);
+            res.ToString();
+            return FormatDynamicObjects(res);
+
+        }
+        else
+        {
+            return "The request did not complete successfully.";
         }
     }
+
     static string FormatDynamicObjects(List<dynamic> dynamicObjects)
     {
         if (dynamicObjects == null || dynamicObjects.Count == 0)
