@@ -54,31 +54,22 @@ public class ChatService
                         {
                             if (!string.IsNullOrEmpty(assistantMessage.Text))
                             {
-                                return new { Type = "text", Content = assistantMessage.Text };
-                            }
-
-                            if (assistantMessage.ImageDetail != null)
-                            {
-                                var imageUrl = assistantMessage.ImageUri.ToString();
-                                if (!string.IsNullOrEmpty(imageUrl))
-                                {
-                                    return new { Type = "image", Content = imageUrl };
-                                }
+                                return assistantMessage.Text;
                             }
                         }
                     }
                 }
 
-                return new { Type = "text", Content = "No assistant message found." };
+                return "No assistant message found.";
             }
             else
             {
-                return new { Type = "text", Content = "The request did not complete successfully." };
+                return "The request did not complete successfully.";
             }
         }
         catch (Exception ex)
         {
-            return new { Type = "text", Content = $"An error occurred while processing the request: {ex.Message}" };
+            return $"An error occurred while processing the request: {ex.Message}";
         }
     }
 }
