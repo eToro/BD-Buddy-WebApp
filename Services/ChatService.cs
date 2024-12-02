@@ -65,7 +65,7 @@ public class ChatService
             else if (runResponse.Value.Status == RunStatus.RequiresAction)
             {
                 var requiredActions = runResponse.Value.RequiredActions;
-                var arguments = requiredActions[0].FunctionArguments
+                var arguments = requiredActions[0].FunctionArguments;
                 return "The assistant requires additional information to complete the request.";
             }
             else 
