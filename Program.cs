@@ -1,12 +1,11 @@
 using ChatGPTClone.Infrastructure;
-using System.Runtime.CompilerServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<ChatService>(); // Register ChatService
-builder.Services.AddSingleton(new DatabaseRepository());
+builder.Services.AddSingleton(new DatabaseRepository("\"Data Source=stg-masterdb.trad.local;Initial Catalog=etoro;Integrated Security=SSPI; Max Pool Size=300;encrypt=False\""));
 
 
 var app = builder.Build();
