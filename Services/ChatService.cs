@@ -1,10 +1,11 @@
-using System.Net.Http;
-using System.Net.Http.Json;
+
 using System.Text.Json;
 
 public class ChatService
 {
-    AssistantClient assistantClient
+    private readonly string _endpoint;
+    private readonly string _apiKey;
+    private readonly HttpClient _httpClient;
 
     public ChatService(HttpClient httpClient, IConfiguration configuration)
     {

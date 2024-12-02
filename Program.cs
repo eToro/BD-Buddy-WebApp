@@ -7,8 +7,6 @@ var app = builder.Build();
 
 app.UseRouting();
 
-app.MapGet("/", () => Results.Redirect("/Chat"));
-
 app.MapRazorPages();
 
 app.Run();
@@ -29,5 +27,9 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Chat}/{action=Index}/{id?}");
 
 app.Run();

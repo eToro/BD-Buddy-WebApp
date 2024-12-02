@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("[controller]")]
-public class ChatController : ControllerBase
+public class ChatController : Controller
 {
     private readonly ChatService _chatService;
 
@@ -11,12 +11,17 @@ public class ChatController : ControllerBase
         _chatService = chatService;
     }
 
-    [HttpPost("SendMessage")]
-    public async Task<IActionResult> SendMessage([FromBody] ChatRequest request)
+    public IActionResult Index()
     {
-        var response = await _chatService.SendMessageAsync(request.Message);
-        return Ok(new { response });
+        return View();
     }
+
+    //[HttpPost("SendMessage")]
+    //public async Task<IActionResult> SendMessage([FromBody] ChatRequest request)
+    //{
+    //    var response = await _chatService.SendMessageAsync(request.Message);
+    //    return Ok(new { response });
+    //}       [HttpPost]
 }
 
 public record ChatRequest(string Message);
