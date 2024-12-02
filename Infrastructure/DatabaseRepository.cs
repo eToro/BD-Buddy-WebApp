@@ -12,16 +12,17 @@ namespace ChatGPTClone.Infrastructure
             _connectionString = connectionString;
         }
 
-        public DataRow ExecuteCommand(string commandText, Dictionary<string, object> parameters)
+        public DataRow ExecuteCommand(string commandText/*, Dictionary<string, object> parameters*/)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(commandText, connection);
 
-                foreach (var param in parameters)
-                {
-                    command.Parameters.AddWithValue(param.Key, param.Value);
-                }
+
+                //foreach (var param in parameters)
+                //{
+                //    command.Parameters.AddWithValue(param.Key, param.Value);
+                //}
 
                 connection.Open();
                 var dataTable = new DataTable();

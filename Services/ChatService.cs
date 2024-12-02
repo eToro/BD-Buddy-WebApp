@@ -1,16 +1,20 @@
 using Azure;
 using Azure.AI.OpenAI;
+using ChatGPTClone.Infrastructure;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenAI.Assistants;
-using System.Linq;
 
 public class ChatService
 {
     private readonly AzureOpenAIClient _openAIClient;
     private readonly AssistantClient _assistantClient;
     private readonly string _assistantId;
+    private readonly DatabaseRepository _databaseRepository;
 
-    public ChatService(IConfiguration configuration)
+    public ChatService(IConfiguration configuration, DatabaseRepository databaseRepository)
     {
+        _databaseRepository = databaseRepository;
         string endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
         string key = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
         _assistantId = Environment.GetEnvironmentVariable("AZURE_OPENAI_ASSISTANT_ID");
@@ -66,7 +70,11 @@ public class ChatService
             {
                 var requiredActions = runResponse.Value.RequiredActions;
                 var arguments = requiredActions[0].FunctionArguments;
-                return "The assistant requires additional information to complete the request.";
+                var jobj =  JObject.Parse(arguments.ToString());
+
+                var sqlQuery = jobj["sqlQuery"].ToString();
+                var res =  _databaseRepository.ExecuteCommand(sqlQuery);
+                return res.ToString(); 
             }
             else 
             {
