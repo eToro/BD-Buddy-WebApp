@@ -32,11 +32,12 @@ public class ChatService
 
         var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
 
-        while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress)
+        do
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500));
             runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
         }
+        while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
 
         if (runResponse.Value.Status == RunStatus.Completed)
         {
