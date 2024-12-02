@@ -24,7 +24,9 @@ public class ChatController : Controller
         {
             var assistantResponse = await _chatService.GetAssistantResponseAsync(userQuery);
             ViewData["AssistantResponse"] = assistantResponse;
+            
+            return Json(new { response = assistantResponse });
         }
-        return View("Index");
+        return Json(new { response = "No response from Assistant." });
     }
 }
