@@ -15,48 +15,54 @@ public class ChatService
         string key = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
         _assistantId = Environment.GetEnvironmentVariable("AZURE_OPENAI_ASSISTANT_ID");
 
-
         _openAIClient = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(key));
         _assistantClient = _openAIClient.GetAssistantClient();
     }
 
     public async Task<string> GetAssistantResponseAsync(string userQuery)
     {
-        var threadResponse = await _assistantClient.CreateThreadAsync();
-        var userMessageContent = MessageContent.FromText(userQuery);
-
-        var messageResponse = await _assistantClient.CreateMessageAsync(
-            threadResponse.Value.Id,
-            MessageRole.User,
-            new List<MessageContent>() { userMessageContent });
-
-        var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
-
-        do
+        try
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-            runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
-        }
-        while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
+            var threadResponse = await _assistantClient.CreateThreadAsync();
+            var userMessageContent = MessageContent.FromText(userQuery);
 
-        if (runResponse.Value.Status == RunStatus.Completed)
-        {
-            AsyncCollectionResult<ThreadMessage> messages = _assistantClient.GetMessagesAsync(
+            await _assistantClient.CreateMessageAsync(
                 threadResponse.Value.Id,
-                new MessageCollectionOptions() { Order = MessageCollectionOrder.Descending });
+                MessageRole.User,
+                new List<MessageContent> { userMessageContent });
 
-            await foreach (ThreadMessage message in messages)
+            var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
+
+            do
             {
-                if (message.Role == MessageRole.Assistant)
+                await Task.Delay(500);
+                runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
+            } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
+
+            if (runResponse.Value.Status == RunStatus.Completed)
+            {
+                var messageResponse = _assistantClient.GetMessagesAsync(
+                    threadResponse.Value.Id,
+                    new MessageCollectionOptions { Order = MessageCollectionOrder.Descending });
+
+                await foreach (var message in messageResponse)
                 {
-                    var messageContent = message.Content[0];
-                    if (!string.IsNullOrEmpty(messageContent.Text))
+                    if (message.Role == MessageRole.Assistant)
                     {
-                        return messageContent.Text;
+                        return message.Content.FirstOrDefault()?.Text ?? "No response from Assistant.";
                     }
                 }
+
+                return "No response from Assistant.";
+            }
+            else
+            {
+                return "The request did not complete successfully.";
             }
         }
-        return "The request did not complete successfully.";
+        catch
+        {
+            return "An error occurred while processing the request.";
+        }
     }
 }

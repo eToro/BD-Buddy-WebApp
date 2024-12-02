@@ -50,9 +50,14 @@
                     $('#user-query').val('');
 
                     $.post('/Chat/AskAssistant', { userQuery: userInput }, function (data) {
-                        $('#chat-window').append(`<div class="mb-2" style="padding: 10px; border-radius: 5px; background-color: rgba(0, 0, 0, 0.3);"><strong>BD Buddy:</strong> ${data.response}</div>`);
+                        if (data.response.imageUrl) {
+                            $('#chat-window').append(`<div class="mb-2" style="padding: 10px; border-radius: 5px; background-color: rgba(0, 0, 0, 0.3);"><strong>BD Buddy:</strong><br><img src="${data.response.imageUrl}" alt="Assistant Image" style="max-width: 100%; height: auto;"></div>`);
+                        } else {
+                            $('#chat-window').append(`<div class="mb-2" style="padding: 10px; border-radius: 5px; background-color: rgba(0, 0, 0, 0.3);"><strong>BD Buddy:</strong> ${data.response}</div>`);
+                        }
                         $('#chat-window').scrollTop($('#chat-window')[0].scrollHeight);
                     });
+
                 });
         });
     </script>
