@@ -1,7 +1,7 @@
-using System.ClientModel;
 using Azure;
 using Azure.AI.OpenAI;
 using OpenAI.Assistants;
+using System.Linq;
 
 public class ChatService
 {
@@ -19,7 +19,7 @@ public class ChatService
         _assistantClient = _openAIClient.GetAssistantClient();
     }
 
-    public async Task<string> GetAssistantResponseAsync(string userQuery)
+    public async Task<object> GetAssistantResponseAsync(string userQuery)
     {
         try
         {
@@ -49,20 +49,36 @@ public class ChatService
                 {
                     if (message.Role == MessageRole.Assistant)
                     {
-                        return message.Content.FirstOrDefault()?.Text ?? "No response from Assistant.";
+                        var assistantMessage = message.Content.FirstOrDefault();
+                        if (assistantMessage != null)
+                        {
+                            if (!string.IsNullOrEmpty(assistantMessage.Text))
+                            {
+                                return new { Type = "text", Content = assistantMessage.Text };
+                            }
+
+                            if (assistantMessage.ImageDetail != null)
+                            {
+                                var imageUrl = assistantMessage.ImageUri.ToString();
+                                if (!string.IsNullOrEmpty(imageUrl))
+                                {
+                                    return new { Type = "image", Content = imageUrl };
+                                }
+                            }
+                        }
                     }
                 }
 
-                return "No response from Assistant.";
+                return new { Type = "text", Content = "No assistant message found." };
             }
             else
             {
-                return "The request did not complete successfully.";
+                return new { Type = "text", Content = "The request did not complete successfully." };
             }
         }
-        catch
+        catch (Exception ex)
         {
-            return "An error occurred while processing the request.";
+            return new { Type = "text", Content = $"An error occurred while processing the request: {ex.Message}" };
         }
     }
 }
