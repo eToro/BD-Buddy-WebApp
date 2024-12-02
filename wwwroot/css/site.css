@@ -1,22 +1,74 @@
+/* General body styles */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
+/* Apply body styles for background color, text color, and background image */
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: #121212;
+    color: #ffffff;
+    background-image: url('/images/green-background.png'); /* Updated background image */
+    background-size: cover; /* Ensure the background image covers the entire screen */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat; /* Ensure the image does not repeat */
+    height: 100vh; /* Ensure the body takes up the entire viewport height */
+}
+
+/* Button focus and active states */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Additional styles */
+#chat-window {
+    background-color: rgba(97, 97, 97, 0.8);
+    border: 1px solid #444;
+    color: #ffffff;
+    height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Style for chat bubbles */
+.mb-2 {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Chat window styles */
+#chat-window {
+    background-color: rgba(97, 97, 97, 0.8);
+    color: #ffffff;
+    border-radius: 8px;
+}
+
+/* Adjusting margins and padding for form elements */
+form {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+input.form-control {
+    margin-right: 10px;
+    width: 70%;
+}
+
+button.btn {
+    background-color: green;
+    border-color: green;
 }
