@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Dynamic;
 using Microsoft.Data.SqlClient;
 
 namespace ChatGPTClone.Infrastructure
@@ -12,7 +13,7 @@ namespace ChatGPTClone.Infrastructure
             _connectionString = connectionString;
         }
 
-        public DataRow ExecuteCommand(string commandText/*, Dictionary<string, object> parameters*/)
+        public List<dynamic> ExecuteCommand(string commandText/, Dictionary<string, object> parameters/)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -29,8 +30,28 @@ namespace ChatGPTClone.Infrastructure
                 var dataAdapter = new SqlDataAdapter(command);
                 dataAdapter.Fill(dataTable);
 
-                return dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null;
+                return dataTable.Rows.Count > 0 ? ConvertDataRowsToDynamic(dataTable.Rows) : null;
             }
+        }
+
+        private List<dynamic> ConvertDataRowsToDynamic(DataRowCollection rows)
+        {
+            var dynamicList = new List<dynamic>();
+
+            foreach (DataRow row in rows)
+            {
+                dynamic expando = new ExpandoObject();
+                var expandoDict = (IDictionary<string, object>)expando;
+
+                foreach (DataColumn column in row.Table.Columns)
+                {
+                    expandoDict[column.ColumnName] = row[column];
+                }
+
+                dynamicList.Add(expando);
+            }
+
+            return dynamicList;
         }
     }
 }
