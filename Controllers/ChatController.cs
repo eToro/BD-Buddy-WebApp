@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("[controller]")]
-public class ChatController : ControllerBase
+
+public class ChatController : Controller
 {
     private readonly ChatService _chatService;
 
@@ -11,12 +10,21 @@ public class ChatController : ControllerBase
         _chatService = chatService;
     }
 
-    [HttpPost("SendMessage")]
-    public async Task<IActionResult> SendMessage([FromBody] ChatRequest request)
+    // GET: Chat
+    public IActionResult Index()
     {
-        var response = await _chatService.SendMessageAsync(request.Message);
-        return Ok(new { response });
+        return View();
+    }
+
+    // POST: Chat/AskAssistant
+    [HttpPost]
+    public async Task<IActionResult> AskAssistant(string userQuery)
+    {
+        if (!string.IsNullOrEmpty(userQuery))
+        {
+            var assistantResponse = await _chatService.GetAssistantResponseAsync(userQuery);
+            ViewData["AssistantResponse"] = assistantResponse;
+        }
+        return View("Index");
     }
 }
-
-public record ChatRequest(string Message);

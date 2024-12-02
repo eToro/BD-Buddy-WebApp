@@ -1,35 +1,61 @@
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
+using System.ClientModel;
+using Azure;
+using Azure.AI.OpenAI;
+using OpenAI.Assistants;
 
 public class ChatService
 {
-    AssistantClient assistantClient
+    private readonly AzureOpenAIClient _openAIClient;
+    private readonly AssistantClient _assistantClient;
+    private readonly string _assistantId;
 
-    public ChatService(HttpClient httpClient, IConfiguration configuration)
+    public ChatService(IConfiguration configuration)
     {
-        _httpClient = httpClient;
-        _apiKey = configuration["AzureOpenAI:ApiKey"];
-        _endpoint = configuration["AzureOpenAI:Endpoint"];
+        string endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
+        string key = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
+        _assistantId = Environment.GetEnvironmentVariable("AZURE_OPENAI_ASSISTANT_ID");
+
+
+        _openAIClient = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(key));
+        _assistantClient = _openAIClient.GetAssistantClient();
     }
 
-    public async Task<string> SendMessageAsync(string prompt)
+    public async Task<string> GetAssistantResponseAsync(string userQuery)
     {
-        var request = new
+        var threadResponse = await _assistantClient.CreateThreadAsync();
+        var userMessageContent = MessageContent.FromText(userQuery);
+
+        var messageResponse = await _assistantClient.CreateMessageAsync(
+            threadResponse.Value.Id,
+            MessageRole.User,
+            new List<MessageContent>() { userMessageContent });
+
+        var runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
+
+        while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress)
         {
-            prompt,
-            max_tokens = 100,
-            temperature = 0.7
-        };
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+            runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
+        }
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"{{_endpoint}}/openai/deployments/gpt-4/completions?api-version=2023-03-15-preview",
-            request,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
+        if (runResponse.Value.Status == RunStatus.Completed)
+        {
+            AsyncCollectionResult<ThreadMessage> messages = _assistantClient.GetMessagesAsync(
+                threadResponse.Value.Id,
+                new MessageCollectionOptions() { Order = MessageCollectionOrder.Descending });
 
-        response.EnsureSuccessStatusCode();
-        var responseData = await response.Content.ReadFromJsonAsync<JsonElement>();
-        return responseData.GetProperty("choices")[0].GetProperty("text").GetString();
+            await foreach (ThreadMessage message in messages)
+            {
+                if (message.Role == MessageRole.Assistant)
+                {
+                    var messageContent = message.Content[0];
+                    if (!string.IsNullOrEmpty(messageContent.Text))
+                    {
+                        return messageContent.Text;
+                    }
+                }
+            }
+        }
+        return "The request did not complete successfully.";
     }
 }
