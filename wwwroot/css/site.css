@@ -1,22 +1,94 @@
+/* General body styles */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
+/* Button focus and active states */
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
+/* Ensure html and body take up the full height of the screen */
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: #0c2c2e;
+    color: #39ff14;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Chat container styling */
+.chat-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Chat window styling */
+#chat-window {
+    height: 450px;
+    overflow-y: auto;
+    background-color: rgba(40, 40, 40, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #444;
+}
+
+/* Chat message styles */
+.chat-message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+    .chat-message.bd-buddy {
+        background-color: rgba(0, 128, 0, 0.3);
+    }
+
+    .chat-message.user {
+        background-color: rgba(128, 128, 128, 0.3);
+    }
+
+/* Form styling */
+#chat-form input {
+    border-radius: 20px;
+    padding: 15px;
+}
+
+    #chat-form input:focus {
+        box-shadow: 0 0 10px #39ff14;
+    }
+
+#chat-form button {
+    border-radius: 20px;
+    padding: 15px 30px;
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+}
+
+    #chat-form button:hover {
+        background-color: #218838;
+    }
+
+/* Image styling */
+img {
+    width: 200px;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 255, 0, 0.5);
 }
