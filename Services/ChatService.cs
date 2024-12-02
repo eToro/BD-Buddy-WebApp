@@ -72,45 +72,9 @@ public class ChatService
                 var jobj = JObject.Parse(arguments.ToString());
 
                 var sqlQuery = jobj["sqlQuery"].ToString();
-                int count = 0;
-                bool isSuccess = false;
-                while (count < 3 && !isSuccess)
-                {
-                    try
-                    {
-                        var res = _databaseRepository.ExecuteCommand(sqlQuery);
-                        res.ToString();
-                        isSuccess = true;
-                        return FormatDynamicObjects(res); ;
-                    }
-                    catch
-                    {
-                        if (runResponse.Value.Status == RunStatus.RequiresAction)
-                        {
-                            userMessageContent = MessageContent.FromText(userQuery);
-
-                            await _assistantClient.CreateMessageAsync(
-                                threadResponse.Value.Id,
-                                MessageRole.User,
-                                new List<MessageContent> { userMessageContent });
-
-                            runResponse = await _assistantClient.CreateRunAsync(threadResponse.Value.Id, _assistantId);
-
-                            do
-                            {
-                                await Task.Delay(500);
-                                runResponse = await _assistantClient.GetRunAsync(threadResponse.Value.Id, runResponse.Value.Id);
-                            } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
-                            requiredActions = runResponse.Value.RequiredActions;
-                            arguments = requiredActions[0].FunctionArguments;
-                            jobj = JObject.Parse(arguments.ToString());
-
-                            sqlQuery = jobj["sqlQuery"].ToString();
-                        }
-                        count++;
-                    }
-                }
-                return "The request did not complete successfully.";
+                var res = _databaseRepository.ExecuteCommand(sqlQuery);
+                res.ToString();
+                return FormatDynamicObjects(res); ;
             }
             else
             {
